@@ -5,11 +5,6 @@ namespace akuna::book {
     }
 
     template <typename OrderPtr>
-    auto OrderTracker<OrderPtr>::ChangeQty(Quantity quantity) -> void {
-        open_qty_ = quantity;
-    }
-
-    template <typename OrderPtr>
     auto OrderTracker<OrderPtr>::Fill(Quantity qty) -> void {
         if (qty > open_qty_) {
             throw std::runtime_error("Fill size larger than open quantity");

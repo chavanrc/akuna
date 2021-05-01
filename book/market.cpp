@@ -43,12 +43,16 @@ namespace akuna::me {
                 auto matched_order = GetOrder(event.matched_order_id_);
                 if (matched_order && matched_order->QuantityOnMarket() == 0) {
                     if (matched_order->QuantityOnMarket() == 0) {
-                        RemoveOrder(matched_order->GetOrderId());
+                        if (RemoveOrder(matched_order->GetOrderId())) {
+                            LOG_DEBUG("REMOVED order: " << *matched_order);
+                        }
                     }
                 }
             }
             if (order->QuantityOnMarket() == 0) {
-                RemoveOrder(order_id);
+                if (RemoveOrder(order_id)) {
+                    LOG_DEBUG("REMOVED order: " << *order);
+                }
             }
         }
         return inserted;
@@ -75,7 +79,7 @@ namespace akuna::me {
         return book->Replace(passivated_order, order);
     }
 
-    auto Market::OrderCancel(OrderId order_id) -> bool {
+    auto Market::OrderCancel(const OrderId& order_id) -> bool {
         bool result = false;
         auto order  = GetOrder(order_id);
         if (order) {
@@ -89,7 +93,7 @@ namespace akuna::me {
         return result;
     }
 
-    auto Market::RemoveOrder(OrderId order_id) -> bool {
+    auto Market::RemoveOrder(const OrderId& order_id) -> bool {
         return orders_.erase(order_id) == 1;
     }
 
@@ -101,14 +105,14 @@ namespace akuna::me {
         return {};
     }
 
-    auto Market::GetOrder(OrderId order_id) -> OrderPtr {
+    auto Market::GetOrder(const OrderId& order_id) -> OrderPtr {
         if (FindExistingOrder(order_id)) {
             return orders_.at(order_id);
         }
         return {};
     }
 
-    auto Market::FindExistingOrder(OrderId order_id) -> bool {
+    auto Market::FindExistingOrder(const OrderId& order_id) -> bool {
         bool result = true;
         if (orders_.find(order_id) == orders_.end()) {
             LOG_DEBUG("--Can't find OrderID #" << order_id);

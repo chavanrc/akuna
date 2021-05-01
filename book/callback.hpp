@@ -54,7 +54,6 @@ namespace akuna::book {
         Quantity    quantity_{0};
         Price       price_{0};
         Delta       delta_{0};
-        OrderId     order_id_{0};
         const char* reject_reason_{nullptr};
     };
 }    // namespace akuna::book

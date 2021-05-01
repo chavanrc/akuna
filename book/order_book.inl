@@ -6,17 +6,7 @@ namespace akuna::book {
     }
 
     template <class OrderPtr>
-    auto OrderBook<OrderPtr>::SetSymbol(Symbol symbol) -> void {
-        symbol_ = symbol;
-    }
-
-    template <class OrderPtr>
-    auto OrderBook<OrderPtr>::GetSymbol() const -> Symbol {
-        return symbol_;
-    }
-
-    template <class OrderPtr>
-    [[nodiscard]] auto OrderBook<OrderPtr>::Add(const OrderPtr &order, OrderConditions conditions) -> bool {
+    auto OrderBook<OrderPtr>::Add(const OrderPtr &order, OrderConditions conditions) -> bool {
         bool matched = false;
 
         if (order->GetQuantity() <= 0) {
@@ -43,16 +33,14 @@ namespace akuna::book {
 
         if (order->IsBuy()) {
             typename TrackerMap::iterator bid;
-            FindOnMarket(order, bid);
-            if (bid != bids_.end()) {
+            if (FindOnMarket(order, bid) && bid != bids_.end()) {
                 open_qty = bid->second.OpenQty();
                 bids_.erase(bid);
                 found = true;
             }
         } else {
             typename TrackerMap::iterator ask;
-            FindOnMarket(order, ask);
-            if (ask != asks_.end()) {
+            if (FindOnMarket(order, ask) && ask != asks_.end()) {
                 open_qty = ask->second.OpenQty();
                 asks_.erase(ask);
                 found = true;
@@ -102,21 +90,6 @@ namespace akuna::book {
     auto OrderBook<OrderPtr>::MarketPrice(Price price) -> void {
         market_price_ = price;
     }
-
-    template <class OrderPtr>
-    [[nodiscard]] auto OrderBook<OrderPtr>::MarketPrice() const -> Price {
-        return market_price_;
-    }
-
-    template <class OrderPtr>
-    auto OrderBook<OrderPtr>::GetBids() const -> const TrackerMap & {
-        return bids_;
-    };
-
-    template <class OrderPtr>
-    auto OrderBook<OrderPtr>::GetAsks() const -> const TrackerMap & {
-        return asks_;
-    };
 
     template <class OrderPtr>
     auto OrderBook<OrderPtr>::MatchOrder(Tracker &inbound, Price inbound_price, TrackerMap &current_orders) -> bool {
@@ -264,11 +237,13 @@ namespace akuna::book {
     template <class OrderPtr>
     auto OrderBook<OrderPtr>::OnReplace(const OrderPtr &order, Delta delta, Price new_price) -> void {
         order->OnReplaced(delta, new_price);
+        LOG_DEBUG("Event: Replaced: " << *order << ' ' << reason);
     }
 
     template <class OrderPtr>
     auto OrderBook<OrderPtr>::OnReplaceReject(const OrderPtr &order, const char *reason) -> void {
         order->OnReplaceRejected(reason);
+        LOG_DEBUG("Event: Replace Reject: " << *order << ' ' << reason);
     }
 
     template <class OrderPtr>

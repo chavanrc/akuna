@@ -20,23 +20,13 @@ namespace akuna::book {
 
         explicit OrderBook(Symbol symbol = 0);
 
-        auto SetSymbol(Symbol symbol) -> void;
-
-        [[nodiscard]] auto GetSymbol() const -> Symbol;
-
         [[nodiscard]] auto Add(const OrderPtr &order, OrderConditions conditions) -> bool;
 
         auto Cancel(const OrderPtr &order) -> void;
 
-        auto Replace(const OrderPtr &passivated_order, const OrderPtr &new_order) -> bool;
+        [[nodiscard]]  auto Replace(const OrderPtr &passivated_order, const OrderPtr &new_order) -> bool;
 
         auto MarketPrice(Price price) -> void;
-
-        [[nodiscard]] auto MarketPrice() const -> Price;
-
-        auto GetBids() const -> const TrackerMap &;
-
-        auto GetAsks() const -> const TrackerMap &;
 
         auto MatchOrder(Tracker &inbound, Price inbound_price, TrackerMap &current_orders) -> bool;
 
@@ -45,7 +35,7 @@ namespace akuna::book {
         auto CreateTrade(Tracker &inbound_tracker, Tracker &current_tracker, Quantity max_quantity = UINT64_MAX)
                 -> Quantity;
 
-        auto FindOnMarket(const OrderPtr &order, typename TrackerMap::iterator &result) -> bool;
+        [[nodiscard]] auto FindOnMarket(const OrderPtr &order, typename TrackerMap::iterator &result) -> bool;
 
         auto CallbackNow() -> void;
 

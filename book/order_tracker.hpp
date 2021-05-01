@@ -9,8 +9,6 @@ namespace akuna::book {
         explicit OrderTracker(const OrderPtr& order,
                               OrderConditions conditions = book::OrderCondition::OC_NO_CONDITIONS);
 
-        auto ChangeQty(Quantity quantity) -> void;
-
         auto Fill(Quantity qty) -> void;
 
         [[nodiscard]] auto Filled() const -> bool;

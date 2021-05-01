@@ -9,10 +9,6 @@ namespace akuna::book {
         return id_;
     }
 
-    auto Order::IsLimit() const -> bool {
-        return GetPrice() != 0;
-    }
-
     auto Order::IsBuy() const -> bool {
         return buy_side_;
     }
@@ -49,24 +45,6 @@ namespace akuna::book {
         return trades_;
     }
 
-    auto Order::CurrentState() const -> std::optional<StateChange> {
-        if (!history_.empty()) {
-            return history_.back();
-        }
-        return {};
-    }
-
-    auto Order::OnSubmitted() -> void {
-        std::stringstream msg;
-        msg << (IsBuy() ? "BUY " : "SELL ") << quantity_ << ' ' << symbol_ << " @";
-        if (price_ == 0) {
-            msg << "MKT";
-        } else {
-            msg << price_;
-        }
-        history_.emplace_back(State::SUBMITTED, msg.str());
-    }
-
     auto Order::OnAccepted() -> void {
         quantity_on_market_ = quantity_;
         history_.emplace_back(State::ACCEPTED);
@@ -98,10 +76,6 @@ namespace akuna::book {
         trades_.emplace_back(res);
     }
 
-    auto Order::OnCancelRequested() -> void {
-        history_.emplace_back(State::CANCEL_REQUESTED);
-    }
-
     auto Order::OnCancelled() -> void {
         quantity_on_market_ = 0;
         history_.emplace_back(State::CANCELLED);
@@ -111,18 +85,7 @@ namespace akuna::book {
         history_.emplace_back(State::CANCEL_REJECTED, reason);
     }
 
-    auto Order::OnReplaceRequested(const int64_t &size_delta, Price new_price) -> void {
-        std::stringstream msg;
-        if (size_delta != akuna::book::SIZE_UNCHANGED) {
-            msg << "Quantity change: " << size_delta << ' ';
-        }
-        if (new_price != akuna::book::PRICE_UNCHANGED) {
-            msg << "New Price " << new_price;
-        }
-        history_.emplace_back(State::MODIFY_REQUESTED, msg.str());
-    }
-
-    auto Order::OnReplaced(const int64_t &size_delta, Price new_price) -> void {
+    auto Order::OnReplaced(const Delta &size_delta, Price new_price) -> void {
         std::stringstream msg;
         if (size_delta != akuna::book::SIZE_UNCHANGED) {
             quantity_ += size_delta;
@@ -166,24 +129,13 @@ namespace akuna::book {
             os << " Cost: " << cost;
         }
 
-        if (order.IsVerbose()) {
-            const Order::History &history = order.GetHistory();
-            for (const auto &event : history) {
-                os << "\n\t" << event;
-            }
-        } else {
-            auto cur_state = order.CurrentState();
-            if (cur_state) {
-                os << " Last Event: " << *cur_state;
-            }
+        const auto &history = order.GetHistory();
+        for (const auto &event : history) {
+            os << "\n\t" << event;
         }
 
         os << ']';
 
         return os;
-    }
-
-    auto Order::IsVerbose() const -> bool {
-        return verbose_;
     }
 }    // namespace akuna::book

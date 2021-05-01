@@ -4,38 +4,34 @@
 #include <ostream>
 #include <sstream>
 #include <string>
+#include <utility>
 #include <vector>
 
 #include "types.hpp"
 
 namespace akuna::book {
     enum class State {
-        SUBMITTED,
         REJECTED,
         ACCEPTED,
-        MODIFY_REQUESTED,
         MODIFY_REJECTED,
         MODIFIED,
         PARTIAL_FILLED,
         FILLED,
-        CANCEL_REQUESTED,
         CANCEL_REJECTED,
         CANCELLED,
         UNKNOWN
     };
 
-    enum TickType : char { ORDER_TICK = 'O', TRADE_EVENT_TICK = 'T', BOOK_UPDATE = 'B', BOOK_CHANGE = 'C' };
-
     struct StateChange {
         State       state_{State::UNKNOWN};
         std::string description_{};
 
-        explicit StateChange(State state, const std::string &description = "")
-            : state_(state), description_(description) {
+        explicit StateChange(State state, std::string description = "")
+            : state_(state), description_(std::move(description)) {
         }
 
         friend std::ostream &operator<<(std::ostream &os, const StateChange &change) {
-            os /*<< "State: " << change.state_*/ << " Description: " << change.description_;
+            os << "State: " << static_cast<int32_t>(change.state_) << " Description: " << change.description_;
             return os;
         }
     };
@@ -58,8 +54,6 @@ namespace akuna::book {
 
         [[nodiscard]] auto GetOrderId() const -> OrderId;
 
-        [[nodiscard]] auto IsLimit() const -> bool;
-
         [[nodiscard]] auto IsBuy() const -> bool;
 
         [[nodiscard]] auto GetSymbol() const -> Symbol;
@@ -78,10 +72,6 @@ namespace akuna::book {
 
         [[nodiscard]] auto GetTrades() const -> const Trades &;
 
-        [[nodiscard]] auto CurrentState() const -> std::optional<StateChange>;
-
-        auto OnSubmitted() -> void;
-
         auto OnAccepted() -> void;
 
         auto OnRejected(const char *reason) -> void;
@@ -91,21 +81,15 @@ namespace akuna::book {
         auto AddTradeHistory(Quantity fill_qty, Quantity remaining_qty, Cost fill_cost, const OrderId &matched_order_id,
                              Price price, FillId fill_id) -> void;
 
-        auto OnCancelRequested() -> void;
-
         auto OnCancelled() -> void;
 
         auto OnCancelRejected(const char *reason) -> void;
 
-        auto OnReplaceRequested(const int64_t &size_delta, Price new_price) -> void;
-
-        auto OnReplaced(const int64_t &size_delta, Price new_price) -> void;
+        auto OnReplaced(const Delta &size_delta, Price new_price) -> void;
 
         auto OnReplaceRejected(const char *reason) -> void;
 
         friend std::ostream &operator<<(std::ostream &os, const Order &order);
-
-        [[nodiscard]] auto IsVerbose() const -> bool;
 
     private:
         OrderId  id_{0};
@@ -118,6 +102,5 @@ namespace akuna::book {
         Cost     fill_cost_{0};
         History  history_{};
         Trades   trades_{};
-        bool     verbose_{false};
     };
 }    // namespace akuna::book

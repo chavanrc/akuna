@@ -23,24 +23,24 @@ namespace akuna::me {
 
         auto OrderModify(const OrderPtr& order) -> bool;
 
-        auto OrderCancel(OrderId order_id) -> bool;
+        auto OrderCancel(const OrderId& order_id) -> bool;
 
         auto Log() const -> void;
 
     private:
-        auto GetBook(Symbol symbol) -> OrderBookPtr;
+        [[nodiscard]] auto GetBook(Symbol symbol) -> OrderBookPtr;
 
-        auto GetOrder(OrderId order_id) -> OrderPtr;
+        [[nodiscard]] auto GetOrder(const OrderId& order_id) -> OrderPtr;
 
-        auto FindExistingOrder(OrderId order_id) -> bool;
+        [[nodiscard]] auto FindExistingOrder(const OrderId& order_id) -> bool;
 
-        auto Validate(const OrderPtr& order) -> bool;
+        [[nodiscard]] auto Validate(const OrderPtr& order) -> bool;
 
-        auto OrderEntryValidate(const OrderPtr& order) -> bool;
+        [[nodiscard]] auto OrderEntryValidate(const OrderPtr& order) -> bool;
 
-        auto OrderModifyValidate(const OrderPtr& order) -> bool;
+        [[nodiscard]] auto OrderModifyValidate(const OrderPtr& order) -> bool;
 
-        auto RemoveOrder(OrderId order_id) -> bool;
+        [[nodiscard]] auto RemoveOrder(const OrderId& order_id) -> bool;
 
         OrderMap        orders_{};
         SymbolToBookMap books_{};
