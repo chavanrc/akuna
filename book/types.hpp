@@ -7,7 +7,6 @@ namespace akuna::book {
     using Quantity        = std::size_t;
     using Cost            = std::size_t;
     using FillId          = std::size_t;
-    using ChangeId        = std::size_t;
     using OrderId         = std::string;
     using Symbol          = std::size_t;
     using Delta           = int64_t;

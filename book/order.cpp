@@ -140,22 +140,6 @@ namespace akuna::book {
         history_.emplace_back(State::MODIFY_REJECTED, reason);
     }
 
-    auto Order::GetOrderData(OrderData &order_data, State state, const std::string &reason) -> void {
-        order_data.id_                 = GetOrderId();
-        order_data.buy_side_           = IsBuy();
-        order_data.symbol_             = Symbol();
-        order_data.quantity_           = GetQuantity();
-        order_data.price_              = GetPrice();
-        order_data.quantity_filled_    = QuantityFilled();
-        order_data.fill_cost_          = FillCost();
-        order_data.quantity_on_market_ = QuantityOnMarket();
-        auto cur_state                 = CurrentState();
-        if (cur_state) {
-            order_data.state_ = cur_state->state_;
-        }
-        order_data.reason_ = reason;
-    }
-
     std::ostream &operator<<(std::ostream &os, const Order &order) {
         os << "[#" << order.GetOrderId();
         os << ' ' << (order.IsBuy() ? "BUY" : "SELL");

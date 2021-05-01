@@ -26,49 +26,6 @@ namespace akuna::book {
 
     enum TickType : char { ORDER_TICK = 'O', TRADE_EVENT_TICK = 'T', BOOK_UPDATE = 'B', BOOK_CHANGE = 'C' };
 
-    struct StreamHeader {
-        size_t   seq_no_{0};
-        TickType message_type_{};
-    };
-
-    struct OrderData {
-        StreamHeader stream_header_{};
-        OrderId      id_{0};
-        bool         buy_side_{};
-        Symbol       symbol_{0};
-        Quantity     quantity_{0};
-        Price        price_{0};
-        Quantity     quantity_filled_{0};
-        Quantity     quantity_on_market_{0};
-        Cost         fill_cost_{0};
-        State        state_{};
-        std::string  reason_{};
-    };
-
-    struct TradeData {
-        StreamHeader stream_header_{};
-        OrderId      buyer_id_{0};
-        OrderId      seller_id_{0};
-        Symbol       symbol_{0};
-        Quantity     quantity_{0};
-        Price        price_{0};
-        bool         buyer_maker_{};
-        FillId       fill_id_{0};
-    };
-
-    template <int32_t SIZE = BOOK_DEPTH>
-    struct BookData {
-        StreamHeader               stream_header_{};
-        Symbol                     symbol_{0};
-        std::pair<Price, Quantity> bids_[SIZE];
-        std::pair<Price, Quantity> asks_[SIZE];
-    };
-
-    struct BookChange {
-        StreamHeader stream_header_{};
-        Symbol       symbol_{0};
-    };
-
     struct StateChange {
         State       state_{State::UNKNOWN};
         std::string description_{};
@@ -145,8 +102,6 @@ namespace akuna::book {
         auto OnReplaced(const int64_t &size_delta, Price new_price) -> void;
 
         auto OnReplaceRejected(const char *reason) -> void;
-
-        auto GetOrderData(OrderData &order_data, State state, const std::string &reason) -> void;
 
         friend std::ostream &operator<<(std::ostream &os, const Order &order);
 

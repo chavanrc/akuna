@@ -16,11 +16,7 @@ namespace akuna::book {
         using Tracker         = OrderTracker<OrderPtr>;
         using TypedCallback   = Callback<OrderPtr>;
         using TrackerMap      = std::multimap<ComparablePrice, Tracker>;
-        using DeferredMatches = std::list<typename TrackerMap::iterator>;
-        using TrackerVec      = std::vector<Tracker>;
         using Callbacks       = std::vector<TypedCallback>;
-        using Bids            = TrackerMap;
-        using Asks            = TrackerMap;
 
         explicit OrderBook(Symbol symbol = 0);
 

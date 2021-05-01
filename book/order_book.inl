@@ -139,7 +139,6 @@ namespace akuna::book {
             }
 
             Tracker &current_order    = entry->second;
-            Quantity current_quantity = current_order.OpenQty();
             Quantity traded           = CreateTrade(inbound, current_order);
             if (traded > 0) {
                 matched = true;
@@ -232,7 +231,7 @@ namespace akuna::book {
 
     template <class OrderPtr>
     auto OrderBook<OrderPtr>::AddOrder(Tracker &inbound, Price order_price) -> bool {
-        bool      matched = false;
+        bool      matched;
         OrderPtr &order   = inbound.Ptr();
         if (order->IsBuy()) {
             matched = MatchOrder(inbound, order_price, asks_);
@@ -344,10 +343,6 @@ namespace akuna::book {
         switch (cb.type_) {
             case TypedCallback::CbType::CB_ORDER_FILL: {
                 Cost fill_cost      = cb.price_ * cb.quantity_;
-                bool inbound_filled = (cb.flags_ & (TypedCallback::FillFlags::FF_INBOUND_FILLED |
-                                                    TypedCallback::FillFlags::FF_BOTH_FILLED)) != 0;
-                bool matched_filled = (cb.flags_ & (TypedCallback::FillFlags::FF_MATCHED_FILLED |
-                                                    TypedCallback::FillFlags::FF_BOTH_FILLED)) != 0;
                 // generate new trade id
                 static FillId fill_id{0};
                 ++fill_id;
