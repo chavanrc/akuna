@@ -277,11 +277,6 @@ namespace akuna::book {
     }
 
     template <class OrderPtr>
-    auto OrderBook<OrderPtr>::OnStopLossTriggered(const OrderId &order_id) -> void {
-        // TODO
-    }
-
-    template <class OrderPtr>
     auto OrderBook<OrderPtr>::OnTrade(const OrderBook *book, const OrderId &id_1, const OrderId &id_2, Quantity qty,
                                       Price price, bool buyer_maker) -> void {
         // TODO
@@ -350,9 +345,6 @@ namespace akuna::book {
                 break;
             case TypedCallback::CbType::CB_BOOK_UPDATE:
                 OnOrderBookChange();
-                break;
-            case TypedCallback::CbType::CB_SL_TRIGGERED:
-                OnStopLossTriggered(cb.order_id_);
                 break;
             default: {
                 std::stringstream msg;

@@ -8,13 +8,6 @@ namespace akuna::book {
     }
 
     template <class OrderPtr>
-    auto Callback<OrderPtr>::StopLossTriggered(const OrderId& order_id) -> Callback<OrderPtr> {
-        Callback<OrderPtr> result;
-        // TODO
-        return result;
-    }
-
-    template <class OrderPtr>
     auto Callback<OrderPtr>::Reject(const OrderPtr& order, const char* reason) -> Callback<OrderPtr> {
         Callback<OrderPtr> result;
         result.type_          = CbType::CB_ORDER_REJECT;
@@ -25,8 +18,7 @@ namespace akuna::book {
 
     template <class OrderPtr>
     auto Callback<OrderPtr>::Fill(const OrderPtr& inbound_order, const OrderPtr& matched_order,
-                                  const Quantity& fill_qty, const Price& fill_price)
-            -> Callback<OrderPtr> {
+                                  const Quantity& fill_qty, const Price& fill_price) -> Callback<OrderPtr> {
         Callback<OrderPtr> result;
         result.type_          = CbType::CB_ORDER_FILL;
         result.order_         = inbound_order;
@@ -55,8 +47,8 @@ namespace akuna::book {
     }
 
     template <class OrderPtr>
-    auto Callback<OrderPtr>::Replace(const OrderPtr& passivated_order, const Quantity& open_qty, const OrderPtr& new_order)
-            -> Callback<OrderPtr> {
+    auto Callback<OrderPtr>::Replace(const OrderPtr& passivated_order, const Quantity& open_qty,
+                                     const OrderPtr& new_order) -> Callback<OrderPtr> {
         Callback<OrderPtr> result;
         result.type_     = CbType::CB_ORDER_REPLACE;
         result.order_    = passivated_order;

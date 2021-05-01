@@ -27,15 +27,10 @@ namespace akuna::book {
             CB_ORDER_CANCEL_REJECT,
             CB_ORDER_REPLACE,
             CB_ORDER_REPLACE_REJECT,
-            CB_BOOK_UPDATE,
-            CB_SL_TRIGGERED
+            CB_BOOK_UPDATE
         };
 
-        enum FillFlags { FF_NEITHER_FILLED = 0, FF_INBOUND_FILLED = 1, FF_MATCHED_FILLED = 2, FF_BOTH_FILLED = 4 };
-
         static auto Accept(const OrderPtr& order) -> Callback<OrderPtr>;
-
-        static auto StopLossTriggered(const OrderId& order_id) -> Callback<OrderPtr>;
 
         static auto Reject(const OrderPtr& order, const char* reason) -> Callback<OrderPtr>;
 
@@ -46,7 +41,8 @@ namespace akuna::book {
 
         static auto CancelReject(const OrderPtr& order, const char* reason) -> Callback<OrderPtr>;
 
-        static auto Replace(const OrderPtr& passivated_order, const Quantity& open_qty, const OrderPtr& new_order) -> Callback<OrderPtr>;
+        static auto Replace(const OrderPtr& passivated_order, const Quantity& open_qty, const OrderPtr& new_order)
+                -> Callback<OrderPtr>;
 
         static auto ReplaceReject(const OrderPtr& order, const char* reason) -> Callback<OrderPtr>;
 
@@ -57,7 +53,7 @@ namespace akuna::book {
         OrderPtr    matched_order_{nullptr};
         Quantity    quantity_{0};
         Price       price_{0};
-        int64_t     delta_{0};
+        Delta       delta_{0};
         OrderId     order_id_{0};
         const char* reject_reason_{nullptr};
     };

@@ -75,8 +75,6 @@ namespace akuna::book {
 
         auto OnOrderBookChange() -> void;
 
-        auto OnStopLossTriggered(const OrderId &order_id) -> void;
-
         auto OnTrade(const OrderBook *book, const OrderId &id_1, const OrderId &id_2, Quantity qty, Price price,
                      bool buyer_maker) -> void;
 
