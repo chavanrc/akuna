@@ -9,19 +9,6 @@ namespace akuna::me {
         return inserted;
     }
 
-    auto Market::RemoveBook(Symbol symbol) -> bool {
-        bool result = false;
-        auto book   = books_.find(symbol);
-        if (book != books_.end()) {
-            auto order_id_list = book->second->AllOrderCancel();
-            result             = books_.erase(symbol) == 1;
-            for (const auto &order_id : order_id_list) {
-                RemoveOrder(order_id);
-            }
-        }
-        return result;
-    }
-
     auto Market::Validate(const OrderPtr &order) -> bool {
         bool result = false;
         if (!order) {

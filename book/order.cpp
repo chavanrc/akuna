@@ -2,7 +2,7 @@
 
 namespace akuna::book {
     Order::Order(OrderId id, bool buy_side, Symbol symbol, Quantity quantity, Price price)
-        : id_{id}, buy_side_{buy_side}, symbol_{symbol}, quantity_{quantity}, price_{price} {
+        : id_{std::move(id)}, buy_side_{buy_side}, symbol_{symbol}, quantity_{quantity}, price_{price} {
     }
 
     auto Order::GetOrderId() const -> OrderId {

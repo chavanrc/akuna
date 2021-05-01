@@ -19,8 +19,6 @@ namespace akuna::me {
 
         auto AddBook(Symbol symbol) -> bool;
 
-        auto RemoveBook(Symbol symbol) -> bool;
-
         auto OrderEntry(const OrderPtr& order, OrderConditions conditions = book::OrderCondition::OC_NO_CONDITIONS) -> bool;
 
         auto OrderModify(const OrderPtr& order) -> bool;

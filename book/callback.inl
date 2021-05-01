@@ -25,7 +25,7 @@ namespace akuna::book {
 
     template <class OrderPtr>
     auto Callback<OrderPtr>::Fill(const OrderPtr& inbound_order, const OrderPtr& matched_order,
-                                  const Quantity& fill_qty, const Price& fill_price, FillFlags fill_flags)
+                                  const Quantity& fill_qty, const Price& fill_price)
             -> Callback<OrderPtr> {
         Callback<OrderPtr> result;
         result.type_          = CbType::CB_ORDER_FILL;
@@ -33,7 +33,6 @@ namespace akuna::book {
         result.matched_order_ = matched_order;
         result.quantity_      = fill_qty;
         result.price_         = fill_price;
-        result.flags_         = fill_flags;
         return result;
     }
 

@@ -47,8 +47,6 @@ namespace akuna::book {
 
         auto FindOnMarket(const OrderPtr &order, typename TrackerMap::iterator &result) -> bool;
 
-        auto AllOrderCancel() -> std::vector<OrderId>;
-
         auto CallbackNow() -> void;
 
         auto PerformCallback(TypedCallback &cb) -> void;

@@ -40,6 +40,7 @@ namespace akuna::book {
     auto OrderBook<OrderPtr>::Cancel(const OrderPtr &order) -> void {
         bool     found    = false;
         Quantity open_qty = 0;
+
         if (order->IsBuy()) {
             typename TrackerMap::iterator bid;
             FindOnMarket(order, bid);
@@ -121,16 +122,17 @@ namespace akuna::book {
     auto OrderBook<OrderPtr>::MatchOrder(Tracker &inbound, Price inbound_price, TrackerMap &current_orders) -> bool {
         if (inbound.AllOrNone()) {
             // TODO
+            return false;
+        } else {
+            return MatchRegularOrder(inbound, inbound_price, current_orders);
         }
-        return MatchRegularOrder(inbound, inbound_price, current_orders);
     }
 
     template <class OrderPtr>
     auto OrderBook<OrderPtr>::MatchRegularOrder(Tracker &inbound, Price inbound_price, TrackerMap &current_orders)
             -> bool {
-        bool                          matched     = false;
-        Quantity                      inbound_qty = inbound.OpenQty();
-        typename TrackerMap::iterator pos         = current_orders.begin();
+        bool     matched     = false;
+        auto     pos         = current_orders.begin();
         while (pos != current_orders.end() && !inbound.Filled()) {
             auto                   entry         = pos++;
             const ComparablePrice &current_price = entry->first;
@@ -138,14 +140,13 @@ namespace akuna::book {
                 break;
             }
 
-            Tracker &current_order    = entry->second;
-            Quantity traded           = CreateTrade(inbound, current_order);
+            Tracker &current_order = entry->second;
+            Quantity traded        = CreateTrade(inbound, current_order);
             if (traded > 0) {
                 matched = true;
                 if (current_order.Filled()) {
                     current_orders.erase(entry);
                 }
-                inbound_qty -= traded;
             }
         }
         return matched;
@@ -171,17 +172,8 @@ namespace akuna::book {
             inbound_tracker.Fill(fill_qty);
             current_tracker.Fill(fill_qty);
             MarketPrice(cross_price);
-
-            typename TypedCallback::FillFlags fill_flags = TypedCallback::FF_NEITHER_FILLED;
-            if (!inbound_tracker.OpenQty()) {
-                fill_flags = (typename TypedCallback::FillFlags)(fill_flags | TypedCallback::FF_INBOUND_FILLED);
-            }
-            if (!current_tracker.OpenQty()) {
-                fill_flags = (typename TypedCallback::FillFlags)(fill_flags | TypedCallback::FF_MATCHED_FILLED);
-            }
-
             callbacks_.push_back(TypedCallback::Fill(inbound_tracker.Ptr(), current_tracker.Ptr(), fill_qty,
-                                                     cross_price, fill_flags));
+                                                     cross_price));
         }
         return fill_qty;
     }
@@ -203,27 +195,6 @@ namespace akuna::book {
     }
 
     template <class OrderPtr>
-    auto OrderBook<OrderPtr>::AllOrderCancel() -> std::vector<OrderId> {
-        std::vector<OrderId>  order_id_list;
-        std::vector<OrderPtr> orders;
-
-        order_id_list.reserve(asks_.size() + bids_.size());
-        orders.reserve(asks_.size() + bids_.size());
-
-        for (auto ask = asks_.rbegin(); ask != asks_.rend(); ++ask) {
-            orders.emplace_back(ask->second.Ptr());
-        }
-        for (auto bid = bids_.begin(); bid != bids_.end(); ++bid) {
-            orders.emplace_back(bid->second.Ptr());
-        }
-        for (const auto &order : orders) {
-            Cancel(order);
-            order_id_list.emplace_back(order->GetOrderId());
-        }
-        return order_id_list;
-    }
-
-    template <class OrderPtr>
     auto OrderBook<OrderPtr>::SubmitOrder(Tracker &inbound) -> bool {
         Price order_price = inbound.Ptr()->GetPrice();
         return AddOrder(inbound, order_price);
@@ -232,7 +203,7 @@ namespace akuna::book {
     template <class OrderPtr>
     auto OrderBook<OrderPtr>::AddOrder(Tracker &inbound, Price order_price) -> bool {
         bool      matched;
-        OrderPtr &order   = inbound.Ptr();
+        OrderPtr &order = inbound.Ptr();
         if (order->IsBuy()) {
             matched = MatchOrder(inbound, order_price, asks_);
         } else {
@@ -342,7 +313,7 @@ namespace akuna::book {
     void OrderBook<OrderPtr>::PerformCallback(TypedCallback &cb) {
         switch (cb.type_) {
             case TypedCallback::CbType::CB_ORDER_FILL: {
-                Cost fill_cost      = cb.price_ * cb.quantity_;
+                Cost fill_cost = cb.price_ * cb.quantity_;
                 // generate new trade id
                 static FillId fill_id{0};
                 ++fill_id;

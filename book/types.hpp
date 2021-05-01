@@ -19,14 +19,9 @@ namespace akuna::book {
     };
 
     namespace {
-        constexpr Price   MARKET_ORDER_PRICE(0);
-        constexpr Price   PRICE_UNCHANGED(0);
-        constexpr int64_t SIZE_UNCHANGED(0);
-        constexpr Price   INVALID_LEVEL_PRICE(0);
-        constexpr Price   MARKET_ORDER_BID_SORT_PRICE(UINT32_MAX);
-        constexpr Price   MARKET_ORDER_ASK_SORT_PRICE(0);
-        constexpr Symbol  DEFAULT_SYMBOL{1};
+        constexpr Price  MARKET_ORDER_PRICE{0};
+        constexpr Price  PRICE_UNCHANGED{0};
+        constexpr Delta  SIZE_UNCHANGED{0};
+        constexpr Symbol DEFAULT_SYMBOL{1};
     }    // namespace
-
-    static const int32_t BOOK_DEPTH = 10;
 }    // namespace akuna::book

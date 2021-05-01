@@ -40,7 +40,7 @@ namespace akuna::book {
         static auto Reject(const OrderPtr& order, const char* reason) -> Callback<OrderPtr>;
 
         static auto Fill(const OrderPtr& inbound_order, const OrderPtr& matched_order, const Quantity& fill_qty,
-                         const Price& fill_price, FillFlags fill_flags) -> Callback<OrderPtr>;
+                         const Price& fill_price) -> Callback<OrderPtr>;
 
         static auto Cancel(const OrderPtr& order, const Quantity& open_qty) -> Callback<OrderPtr>;
 
@@ -57,7 +57,6 @@ namespace akuna::book {
         OrderPtr    matched_order_{nullptr};
         Quantity    quantity_{0};
         Price       price_{0};
-        uint8_t     flags_{0};
         int64_t     delta_{0};
         OrderId     order_id_{0};
         const char* reject_reason_{nullptr};
