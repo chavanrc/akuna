@@ -253,13 +253,13 @@ namespace akuna::book {
     template <class OrderPtr>
     auto OrderBook<OrderPtr>::OnAccept(const OrderPtr &order, Quantity quantity) -> void {
         order->OnAccepted();
-        LOG_INFO("Event: Accepted: " << *order);
+        LOG_DEBUG("Event: Accepted: " << *order);
     }
 
     template <class OrderPtr>
     auto OrderBook<OrderPtr>::OnReject(const OrderPtr &order, const char *reason) -> void {
         order->OnRejected(reason);
-        LOG_INFO("Event: Rejected: " << *order << ' ' << reason);
+        LOG_DEBUG("Event: Rejected: " << *order << ' ' << reason);
     }
 
     template <class OrderPtr>
@@ -269,10 +269,8 @@ namespace akuna::book {
         matched_order->OnFilled(fill_qty, fill_cost);
 
         std::stringstream out;
-        out << (order->IsBuy() ? "Event: Fill-Bought: " : "Event: Fill-Sold: ") << fill_qty << " Shares for "
-            << fill_cost << ' ' << *order;
-        out << (matched_order->IsBuy() ? " Bought: " : " Sold: ") << fill_qty << " Shares for " << fill_cost << ' '
-            << *matched_order;
+        out << "TRADE " << matched_order->GetOrderId() << ' ' << matched_order->GetPrice() << ' ' << fill_qty << ' '
+            << order->GetOrderId() << ' ' << order->GetPrice() << ' ' << fill_qty;
         LOG_INFO(out.str());
 
         order->AddTradeHistory(fill_qty, matched_order->QuantityOnMarket(), fill_cost, matched_order->GetOrderId(),
@@ -284,13 +282,13 @@ namespace akuna::book {
     template <class OrderPtr>
     auto OrderBook<OrderPtr>::OnCancel(const OrderPtr &order, Quantity quantity) -> void {
         order->OnCancelled();
-        LOG_INFO("Event: Canceled: " << *order);
+        LOG_DEBUG("Event: Canceled: " << *order);
     }
 
     template <class OrderPtr>
     auto OrderBook<OrderPtr>::OnCancelReject(const OrderPtr &order, const char *reason) -> void {
         order->OnCancelRejected(reason);
-        LOG_INFO("Event: Cancel Reject: " << *order << ' ' << reason);
+        LOG_DEBUG("Event: Cancel Reject: " << *order << ' ' << reason);
     }
 
     template <class OrderPtr>
@@ -400,14 +398,21 @@ namespace akuna::book {
 
     template <class OrderPtr>
     auto OrderBook<OrderPtr>::Log() const -> void {
-        LOG_INFO("Symbol " << symbol_);
-        LOG_INFO("Market Price " << market_price_);
+        LOG_INFO("SELL:");
+        std::map<Price, Quantity> book;
         for (auto ask = asks_.rbegin(); ask != asks_.rend(); ++ask) {
-            LOG_INFO("  Ask " << ask->second.OpenQty() << " @ " << ask->first);
+            book[ask->first.GetPrice()] += ask->second.OpenQty();
         }
-
+        for (const auto &[price, qty] : book) {
+            LOG_INFO(price << " \t" << qty);
+        }
+        book.clear();
+        LOG_INFO("BUY:");
         for (auto bid = bids_.begin(); bid != bids_.end(); ++bid) {
-            LOG_INFO("  Bid " << bid->second.OpenQty() << " @ " << bid->first);
+            book[bid->first.GetPrice()] += bid->second.OpenQty();
+        }
+        for (auto level = book.rbegin(); level != book.rend(); ++level) {
+            LOG_INFO(level->first << " \t" << level->second);
         }
     }
 }    // namespace akuna::book

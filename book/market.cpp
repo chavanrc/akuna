@@ -4,7 +4,7 @@
 
 namespace akuna::me {
     auto Market::AddBook(Symbol symbol) -> bool {
-        LOG_INFO("Create new depth order book for " << symbol);
+        LOG_DEBUG("Create new depth order book for " << symbol);
         auto [iter, inserted] = books_.insert_or_assign(symbol, std::make_shared<OrderBook>(symbol));
         return inserted;
     }
@@ -48,10 +48,10 @@ namespace akuna::me {
         auto symbol   = order->GetSymbol();
         auto book     = GetBook(symbol);
         auto order_id = order->GetOrderId();
-        LOG_INFO("ADDING order: " << *order);
+        LOG_DEBUG("ADDING order: " << *order);
         auto [iter, inserted] = orders_.insert_or_assign(order_id, order);
         if (inserted && book->Add(order, conditions)) {
-            LOG_INFO(order_id << " matched");
+            LOG_DEBUG(order_id << " matched");
             for (const auto &event : order->GetTrades()) {
                 auto matched_order = GetOrder(event.matched_order_id_);
                 if (matched_order && matched_order->QuantityOnMarket() == 0) {
@@ -83,7 +83,7 @@ namespace akuna::me {
             return false;
         }
         auto passivated_order = GetOrder(order->GetOrderId());
-        LOG_INFO("MODIFYING passivated order: " << *passivated_order << " with order: " << *order);
+        LOG_DEBUG("MODIFYING passivated order: " << *passivated_order << " with order: " << *order);
         auto book = GetBook(order->GetSymbol());
         return book->Replace(passivated_order, order);
     }
@@ -92,7 +92,7 @@ namespace akuna::me {
         bool result = false;
         auto order  = GetOrder(order_id);
         if (order) {
-            LOG_INFO("Requesting Cancel: " << *order);
+            LOG_DEBUG("Requesting Cancel: " << *order);
             auto book = GetBook(order->GetSymbol());
             if (book) {
                 book->Cancel(order);

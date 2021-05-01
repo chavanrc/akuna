@@ -68,11 +68,11 @@ static std::optional<Order> ReadLine(const std::string& line) {
     } else if (s == "CANCEL") {
         order.msg_type_ = 'X';
         std::getline(iss, s, ' ');
+
         order.order_id_ = std::move(s);
         Trim(order.order_id_);
     } else if (s == "PRINT") {
-        // TODO
-        return {};
+        order.msg_type_ = 'P';
     } else {
         std::cout << "ERROR: Invalid msg type: " << s << '\n';
         return {};
@@ -108,11 +108,13 @@ int32_t main(int32_t argc, char* argv[]) {
                 case 'X':
                     market->OrderCancel(order->order_id_);
                     break;
+                case 'P':
+                    market->Log();
+                    break;
                 default:
                     std::cout << "Invalid msg type " << order->msg_type_ << '\n';
                     break;
             }
         }
     }
-    market->Log();
 }
