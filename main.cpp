@@ -4,9 +4,9 @@
 #include "book/market.hpp"
 
 struct Order {
+    bool                  valid_{true};
     char                  msg_type_{'\0'};
     akuna::book::OrderId  order_id_{0};
-    akuna::book::Symbol   symbol_{akuna::book::DEFAULT_SYMBOL};
     bool                  is_buy_{false};
     bool                  ioc_{false};
     akuna::book::Quantity quantity_{0};
@@ -16,13 +16,12 @@ struct Order {
         switch (order.msg_type_) {
             case 'A':
                 os << "msg_type : " << order.msg_type_ << " order_id : " << order.order_id_
-                   << " symbol : " << order.symbol_ << " is_buy : " << order.is_buy_ << " ioc : " << order.ioc_
-                   << " quantity : " << order.quantity_ << " price : " << order.price_;
+                   << " is_buy : " << order.is_buy_ << " ioc : " << order.ioc_ << " quantity : " << order.quantity_
+                   << " price : " << order.price_;
                 break;
             case 'M':
                 os << "msg_type : " << order.msg_type_ << " order_id : " << order.order_id_
-                   << " symbol : " << order.symbol_ << " is_buy : " << order.is_buy_
-                   << " quantity : " << order.quantity_ << " price : " << order.price_;
+                   << " is_buy : " << order.is_buy_ << " quantity : " << order.quantity_ << " price : " << order.price_;
                 break;
             case 'X':
                 os << "msg_type : " << order.msg_type_ << " order_id : " << order.order_id_;
@@ -37,7 +36,7 @@ static void Trim(std::string& line) {
         line.erase(line.size() - 1);
 }
 
-static std::pair<bool, Order> ReadLine(const std::string& line) {
+static Order ReadLine(const std::string& line) {
     std::string        s;
     std::istringstream iss(line);
 
@@ -87,44 +86,36 @@ static std::pair<bool, Order> ReadLine(const std::string& line) {
     } else if (s == "PRINT") {
         order.msg_type_ = 'P';
     } else {
-        std::cout << "ERROR: Invalid msg type: " << s << '\n';
-        return {};
+        order.valid_ = false;
     }
-    return {true, order};
+    return order;
 }
 
-int32_t main(int32_t argc, char* argv[]) {
+int32_t main() {
     std::string   line;
     std::string   filename{"input.csv"};
     std::ifstream infile(filename.c_str(), std::ifstream::in);
     auto          market = std::make_unique<akuna::me::Market>();
-    market->AddBook(akuna::book::DEFAULT_SYMBOL);
     while (std::getline(infile, line)) {
-        auto data  = ReadLine(line);
-        auto order = &data.second;
-        if (data.first) {
-            switch (order->msg_type_) {
+        auto order = ReadLine(line);
+        if (order.valid_) {
+            switch (order.msg_type_) {
                 case 'A': {
-                    akuna::book::OrderConditions conditions =
-                            order->ioc_ ? akuna::book::OrderCondition::OC_IMMEDIATE_OR_CANCEL
-                                        : akuna::book::OrderCondition::OC_NO_CONDITIONS;
-                    market->OrderEntry(
-                            std::make_shared<akuna::book::Order>(order->order_id_, order->is_buy_, order->symbol_,
-                                                                 order->quantity_, order->price_),
-                            conditions);
+                    auto conditions = order.ioc_ ? akuna::book::OrderCondition::OC_IMMEDIATE_OR_CANCEL
+                                                 : akuna::book::OrderCondition::OC_NO_CONDITIONS;
+                    market->OrderEntry(std::make_shared<akuna::book::Order>(order.order_id_, order.is_buy_,
+                                                                            order.quantity_, order.price_),
+                                       conditions);
                 } break;
                 case 'M':
-                    market->OrderModify(std::make_shared<akuna::book::Order>(
-                            order->order_id_, order->is_buy_, order->symbol_, order->quantity_, order->price_));
+                    market->OrderModify(std::make_shared<akuna::book::Order>(order.order_id_, order.is_buy_,
+                                                                             order.quantity_, order.price_));
                     break;
                 case 'X':
-                    market->OrderCancel(order->order_id_);
+                    market->OrderCancel(order.order_id_);
                     break;
                 case 'P':
                     market->Log();
-                    break;
-                default:
-                    std::cout << "Invalid msg type " << order->msg_type_ << '\n';
                     break;
             }
         }

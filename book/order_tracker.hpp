@@ -7,21 +7,40 @@ namespace akuna::book {
     class OrderTracker {
     public:
         explicit OrderTracker(const OrderPtr& order,
-                              OrderConditions conditions = book::OrderCondition::OC_NO_CONDITIONS);
+                              OrderConditions conditions = book::OrderCondition::OC_NO_CONDITIONS)
+            : order_{order}, open_qty_{order->GetQuantity()}, conditions_{conditions} {
+        }
 
-        auto Fill(Quantity qty) -> void;
+        auto Fill(Quantity qty) -> void{
+            if (qty > open_qty_) {
+                throw std::runtime_error("Fill size larger than open quantity");
+            }
+            open_qty_ -= qty;
+        }
 
-        [[nodiscard]] auto Filled() const -> bool;
+        [[nodiscard]] auto Filled() const -> bool {
+            return open_qty_ == 0;
+        }
 
-        [[nodiscard]] auto FilledQty() const -> Quantity;
+        [[nodiscard]] auto FilledQty() const -> Quantity {
+            return order_->GetQuantity() - OpenQty();
+        }
 
-        [[nodiscard]] auto OpenQty() const -> Quantity;
+        [[nodiscard]] auto OpenQty() const -> Quantity {
+            return open_qty_;
+        }
 
-        auto Ptr() const -> const OrderPtr&;
+        auto Ptr() const -> const OrderPtr& {
+            return order_;
+        }
 
-        auto Ptr() -> OrderPtr&;
+        auto Ptr() -> OrderPtr& {
+            return order_;
+        }
 
-        [[nodiscard]] auto ImmediateOrCancel() const -> bool;
+        [[nodiscard]] auto ImmediateOrCancel() const -> bool {
+            return static_cast<OrderCondition>(conditions_) == OrderCondition::OC_IMMEDIATE_OR_CANCEL;
+        }
 
     private:
         OrderPtr        order_{nullptr};
@@ -29,5 +48,3 @@ namespace akuna::book {
         OrderConditions conditions_;
     };
 }    // namespace akuna::book
-
-#include "order_tracker.inl"
