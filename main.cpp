@@ -1,4 +1,5 @@
 #include <fstream>
+#include <ostream>
 
 #include "book/market.hpp"
 
@@ -13,8 +14,9 @@ struct Order {
     akuna::book::Price    price_{0};
 
     friend std::ostream& operator<<(std::ostream& os, const Order& order) {
-        os << "msg_type: " << order.msg_type_ << " order_id: " << order.order_id_ << " symbol: " << order.symbol_
-           << " is_buy: " << order.is_buy_ << " quantity: " << order.quantity_ << " price: " << order.price_;
+        os << "msg_type : " << order.msg_type_ << " order_id : " << order.order_id_ << " symbol : " << order.symbol_
+           << " is_buy : " << order.is_buy_ << " aon : " << order.aon_ << " ioc : " << order.ioc_
+           << " quantity : " << order.quantity_ << " price : " << order.price_;
         return os;
     }
 };
@@ -24,7 +26,7 @@ static void Trim(std::string& line) {
         line.erase(line.size() - 1);
 }
 
-static std::optional<Order> ReadLine(const std::string& line) {
+static std::pair<bool, Order> ReadLine(const std::string& line) {
     std::string        s;
     std::istringstream iss(line);
 
@@ -77,18 +79,19 @@ static std::optional<Order> ReadLine(const std::string& line) {
         std::cout << "ERROR: Invalid msg type: " << s << '\n';
         return {};
     }
-    return order;
+    return {true, order};
 }
 
 int32_t main(int32_t argc, char* argv[]) {
-    std::string   line;
+    std::string line;
     std::string   filename{"input.csv"};
     std::ifstream infile(filename.c_str(), std::ifstream::in);
-    auto          market = std::make_unique<akuna::me::Market>();
+    auto market = std::make_unique<akuna::me::Market>();
     market->AddBook(akuna::book::DEFAULT_SYMBOL);
     while (std::getline(infile, line)) {
-        auto order = ReadLine(line);
-        if (order) {
+        auto data  = ReadLine(line);
+        auto order = &data.second;
+        if (data.first) {
             switch (order->msg_type_) {
                 case 'A': {
                     akuna::book::OrderConditions conditions =

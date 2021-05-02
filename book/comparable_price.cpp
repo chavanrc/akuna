@@ -75,7 +75,7 @@ namespace akuna::book {
         return price_ == MARKET_ORDER_PRICE;
     }
 
-    std::ostream &operator<<(std::ostream &os, const ComparablePrice &price) {
+    auto operator<<(std::ostream &os, const ComparablePrice &price) -> std::ostream & {
         os << "at ";
         if (price.IsMarket()) {
             os << "Market";

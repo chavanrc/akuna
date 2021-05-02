@@ -5,7 +5,13 @@
 namespace akuna::me {
     auto Market::AddBook(Symbol symbol) -> bool {
         LOG_DEBUG("Create new depth order book for " << symbol);
-        auto [iter, inserted] = books_.insert_or_assign(symbol, std::make_shared<OrderBook>(symbol));
+        // auto [iter, inserted] = books_.insert_or_assign(symbol, std::make_shared<OrderBook>(symbol));
+        bool inserted = false;
+        if (books_.find(symbol) == books_.end()) {
+            inserted = books_.insert({symbol, std::make_shared<OrderBook>(symbol)}).second;
+        } else {
+            books_.at(symbol) = std::make_shared<OrderBook>(symbol);
+        }
         return inserted;
     }
 
@@ -32,21 +38,19 @@ namespace akuna::me {
         if (!OrderEntryValidate(order)) {
             return false;
         }
+        LOG_DEBUG("ADDING order: " << *order);
         auto symbol   = order->GetSymbol();
         auto book     = GetBook(symbol);
         auto order_id = order->GetOrderId();
-        LOG_DEBUG("ADDING order: " << *order);
-        auto [iter, inserted] = orders_.insert_or_assign(order_id, order);
+        bool inserted = AddOrder(order);
+
         if (inserted && book->Add(order, conditions)) {
             LOG_DEBUG(order_id << " matched");
             for (const auto &event : order->GetTrades()) {
                 auto matched_order = GetOrder(event.matched_order_id_);
-                if (matched_order && matched_order->QuantityOnMarket() == 0) {
-                    if (matched_order->QuantityOnMarket() == 0) {
-                        if (RemoveOrder(matched_order->GetOrderId())) {
-                            LOG_DEBUG("REMOVED order: " << *matched_order);
-                        }
-                    }
+                if (matched_order && matched_order->QuantityOnMarket() == 0 &&
+                    RemoveOrder(matched_order->GetOrderId())) {
+                    LOG_DEBUG("REMOVED order: " << *matched_order);
                 }
             }
             if (order->QuantityOnMarket() == 0) {
@@ -73,13 +77,28 @@ namespace akuna::me {
         if (!OrderModifyValidate(order)) {
             return false;
         }
-        auto passivated_order = GetOrder(order->GetOrderId());
         LOG_DEBUG("MODIFYING passivated order: " << *passivated_order << " with order: " << *order);
-        auto book = GetBook(order->GetSymbol());
-        return book->Replace(passivated_order, order);
+        auto order_id         = order->GetOrderId();
+        auto passivated_order = GetOrder(order_id);
+        auto book             = GetBook(order->GetSymbol());
+        if (book->Replace(passivated_order, order)) {
+            for (const auto &event : order->GetTrades()) {
+                auto matched_order = GetOrder(event.matched_order_id_);
+                if (RemoveOrder(matched_order)) {
+                    LOG_DEBUG("REMOVED order: " << *matched_order);
+                }
+            }
+            if (RemoveOrder(order)) {
+                LOG_DEBUG("REMOVED order: " << *order);
+            }
+        }
+        if (FindExistingOrder(order_id) && passivated_order->IsBuy() != order->IsBuy()) {
+            orders_.at(order_id) = order;
+        }
+        return true;
     }
 
-    auto Market::OrderCancel(const OrderId& order_id) -> bool {
+    auto Market::OrderCancel(const OrderId &order_id) -> bool {
         bool result = false;
         auto order  = GetOrder(order_id);
         if (order) {
@@ -93,8 +112,26 @@ namespace akuna::me {
         return result;
     }
 
-    auto Market::RemoveOrder(const OrderId& order_id) -> bool {
+    auto Market::AddOrder(const OrderPtr &order) -> bool {
+        const auto &order_id = order->GetOrderId();
+        // auto [iter, inserted] = orders_.insert_or_assign(order_id, order);
+        bool inserted = false;
+        if (orders_.find(order_id) == orders_.end()) {
+            inserted = orders_.insert({order_id, order}).second;
+        }
+        return inserted;
+    }
+
+    auto Market::RemoveOrder(const OrderId &order_id) -> bool {
         return orders_.erase(order_id) == 1;
+    }
+
+    auto Market::RemoveOrder(const OrderPtr &order) -> bool {
+        bool result = false;
+        if (order->QuantityOnMarket() == 0) {
+            result = RemoveOrder(order->GetOrderId());
+        }
+        return result;
     }
 
     auto Market::GetBook(Symbol symbol) -> OrderBookPtr {
@@ -105,14 +142,14 @@ namespace akuna::me {
         return {};
     }
 
-    auto Market::GetOrder(const OrderId& order_id) -> OrderPtr {
+    auto Market::GetOrder(const OrderId &order_id) -> OrderPtr {
         if (FindExistingOrder(order_id)) {
             return orders_.at(order_id);
         }
         return {};
     }
 
-    auto Market::FindExistingOrder(const OrderId& order_id) -> bool {
+    auto Market::FindExistingOrder(const OrderId &order_id) -> bool {
         bool result = true;
         if (orders_.find(order_id) == orders_.end()) {
             LOG_DEBUG("--Can't find OrderID #" << order_id);
@@ -122,8 +159,9 @@ namespace akuna::me {
     }
 
     auto Market::Log() const -> void {
-        for (const auto &[symbol, book] : books_) {
-            book->Log();
+        // for (const auto &[symbol, book] : books_) {
+        for (const auto &book : books_) {
+            book.second->Log();
         }
     }
 }    // namespace akuna::me

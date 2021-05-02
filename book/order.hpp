@@ -30,7 +30,7 @@ namespace akuna::book {
             : state_(state), description_(std::move(description)) {
         }
 
-        friend std::ostream &operator<<(std::ostream &os, const StateChange &change) {
+        friend auto operator<<(std::ostream &os, const StateChange &change) -> std::ostream & {
             os << "State: " << static_cast<int32_t>(change.state_) << " Description: " << change.description_;
             return os;
         }
@@ -89,7 +89,7 @@ namespace akuna::book {
 
         auto OnReplaceRejected(const char *reason) -> void;
 
-        friend std::ostream &operator<<(std::ostream &os, const Order &order);
+        friend auto operator<<(std::ostream &os, const Order &order) -> std::ostream &;
 
     private:
         OrderId  id_{0};

@@ -103,7 +103,7 @@ namespace akuna::book {
         history_.emplace_back(State::MODIFY_REJECTED, reason);
     }
 
-    std::ostream &operator<<(std::ostream &os, const Order &order) {
+    auto operator<<(std::ostream &os, const Order &order) -> std::ostream & {
         os << "[#" << order.GetOrderId();
         os << ' ' << (order.IsBuy() ? "BUY" : "SELL");
         os << ' ' << order.GetSymbol();

@@ -37,7 +37,7 @@ namespace akuna::book {
 
         [[nodiscard]] auto IsMarket() const -> bool;
 
-        friend std::ostream& operator<<(std::ostream& os, const ComparablePrice& price);
+        friend auto operator<<(std::ostream& os, const ComparablePrice& price) -> std::ostream&;
 
     private:
         Price price_;

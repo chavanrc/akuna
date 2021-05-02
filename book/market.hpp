@@ -19,7 +19,8 @@ namespace akuna::me {
 
         auto AddBook(Symbol symbol) -> bool;
 
-        auto OrderEntry(const OrderPtr& order, OrderConditions conditions = book::OrderCondition::OC_NO_CONDITIONS) -> bool;
+        auto OrderEntry(const OrderPtr& order, OrderConditions conditions = book::OrderCondition::OC_NO_CONDITIONS)
+                -> bool;
 
         auto OrderModify(const OrderPtr& order) -> bool;
 
@@ -40,7 +41,11 @@ namespace akuna::me {
 
         [[nodiscard]] auto OrderModifyValidate(const OrderPtr& order) -> bool;
 
+        [[nodiscard]] auto AddOrder(const OrderPtr& order) -> bool;
+
         [[nodiscard]] auto RemoveOrder(const OrderId& order_id) -> bool;
+
+        [[nodiscard]] auto RemoveOrder(const OrderPtr& order) -> bool;
 
         OrderMap        orders_{};
         SymbolToBookMap books_{};

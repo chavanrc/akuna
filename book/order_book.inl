@@ -104,8 +104,8 @@ namespace akuna::book {
     template <class OrderPtr>
     auto OrderBook<OrderPtr>::MatchRegularOrder(Tracker &inbound, Price inbound_price, TrackerMap &current_orders)
             -> bool {
-        bool     matched     = false;
-        auto     pos         = current_orders.begin();
+        bool matched = false;
+        auto pos     = current_orders.begin();
         while (pos != current_orders.end() && !inbound.Filled()) {
             auto                   entry         = pos++;
             const ComparablePrice &current_price = entry->first;
@@ -145,8 +145,8 @@ namespace akuna::book {
             inbound_tracker.Fill(fill_qty);
             current_tracker.Fill(fill_qty);
             MarketPrice(cross_price);
-            callbacks_.push_back(TypedCallback::Fill(inbound_tracker.Ptr(), current_tracker.Ptr(), fill_qty,
-                                                     cross_price));
+            callbacks_.push_back(
+                    TypedCallback::Fill(inbound_tracker.Ptr(), current_tracker.Ptr(), fill_qty, cross_price));
         }
         return fill_qty;
     }
@@ -333,11 +333,11 @@ namespace akuna::book {
     auto OrderBook<OrderPtr>::Log() const -> void {
         LOG_INFO("SELL:");
         std::map<Price, Quantity> book;
-        for (auto ask = asks_.rbegin(); ask != asks_.rend(); ++ask) {
+        for (auto ask = asks_.begin(); ask != asks_.end(); ++ask) {
             book[ask->first.GetPrice()] += ask->second.OpenQty();
         }
-        for (const auto &[price, qty] : book) {
-            LOG_INFO(price << " \t" << qty);
+        for (auto level = book.rbegin(); level != book.rend(); ++level) {
+            LOG_INFO(level->first << ' ' << level->second);
         }
         book.clear();
         LOG_INFO("BUY:");
@@ -345,7 +345,7 @@ namespace akuna::book {
             book[bid->first.GetPrice()] += bid->second.OpenQty();
         }
         for (auto level = book.rbegin(); level != book.rend(); ++level) {
-            LOG_INFO(level->first << " \t" << level->second);
+            LOG_INFO(level->first << ' ' << level->second);
         }
     }
 }    // namespace akuna::book

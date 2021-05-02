@@ -13,10 +13,10 @@ namespace akuna::book {
     template <typename OrderPtr>
     class OrderBook {
     public:
-        using Tracker         = OrderTracker<OrderPtr>;
-        using TypedCallback   = Callback<OrderPtr>;
-        using TrackerMap      = std::multimap<ComparablePrice, Tracker>;
-        using Callbacks       = std::vector<TypedCallback>;
+        using Tracker       = OrderTracker<OrderPtr>;
+        using TypedCallback = Callback<OrderPtr>;
+        using TrackerMap    = std::multimap<ComparablePrice, Tracker>;
+        using Callbacks     = std::vector<TypedCallback>;
 
         explicit OrderBook(Symbol symbol = 0);
 
@@ -24,7 +24,7 @@ namespace akuna::book {
 
         auto Cancel(const OrderPtr &order) -> void;
 
-        [[nodiscard]]  auto Replace(const OrderPtr &passivated_order, const OrderPtr &new_order) -> bool;
+        [[nodiscard]] auto Replace(const OrderPtr &passivated_order, const OrderPtr &new_order) -> bool;
 
         auto MarketPrice(Price price) -> void;
 
@@ -59,7 +59,7 @@ namespace akuna::book {
 
         auto OnCancelReject(const OrderPtr &order, const char *reason) -> void;
 
-        auto OnReplace(const OrderPtr& order, Delta delta, Price new_price) -> void;
+        auto OnReplace(const OrderPtr &order, Delta delta, Price new_price) -> void;
 
         auto OnReplaceReject(const OrderPtr &order, const char *reason) -> void;
 
