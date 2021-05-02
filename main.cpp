@@ -14,9 +14,21 @@ struct Order {
     akuna::book::Price    price_{0};
 
     friend std::ostream& operator<<(std::ostream& os, const Order& order) {
-        os << "msg_type : " << order.msg_type_ << " order_id : " << order.order_id_ << " symbol : " << order.symbol_
-           << " is_buy : " << order.is_buy_ << " aon : " << order.aon_ << " ioc : " << order.ioc_
-           << " quantity : " << order.quantity_ << " price : " << order.price_;
+        switch (order.msg_type_) {
+            case 'A':
+                os << "msg_type : " << order.msg_type_ << " order_id : " << order.order_id_
+                   << " symbol : " << order.symbol_ << " is_buy : " << order.is_buy_ << " aon : " << order.aon_
+                   << " ioc : " << order.ioc_ << " quantity : " << order.quantity_ << " price : " << order.price_;
+                break;
+            case 'M':
+                os << "msg_type : " << order.msg_type_ << " order_id : " << order.order_id_
+                   << " symbol : " << order.symbol_ << " is_buy : " << order.is_buy_
+                   << " quantity : " << order.quantity_ << " price : " << order.price_;
+                break;
+            case 'X':
+                os << "msg_type : " << order.msg_type_ << " order_id : " << order.order_id_;
+                break;
+        }
         return os;
     }
 };
@@ -83,10 +95,10 @@ static std::pair<bool, Order> ReadLine(const std::string& line) {
 }
 
 int32_t main(int32_t argc, char* argv[]) {
-    std::string line;
+    std::string   line;
     std::string   filename{"input.csv"};
     std::ifstream infile(filename.c_str(), std::ifstream::in);
-    auto market = std::make_unique<akuna::me::Market>();
+    auto          market = std::make_unique<akuna::me::Market>();
     market->AddBook(akuna::book::DEFAULT_SYMBOL);
     while (std::getline(infile, line)) {
         auto data  = ReadLine(line);

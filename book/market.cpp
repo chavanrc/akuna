@@ -21,6 +21,9 @@ namespace akuna::me {
             LOG_ERROR("Invalid order ref.");
             return result;
         }
+        if(order->GetPrice() == 0) {
+            return result;
+        }
         auto symbol = order->GetSymbol();
         auto book   = GetBook(symbol);
         if (!book) {
@@ -77,10 +80,10 @@ namespace akuna::me {
         if (!OrderModifyValidate(order)) {
             return false;
         }
-        LOG_DEBUG("MODIFYING passivated order: " << *passivated_order << " with order: " << *order);
         auto order_id         = order->GetOrderId();
         auto passivated_order = GetOrder(order_id);
         auto book             = GetBook(order->GetSymbol());
+        LOG_DEBUG("MODIFYING passivated order: " << *passivated_order << " with order: " << *order);
         if (book->Replace(passivated_order, order)) {
             for (const auto &event : order->GetTrades()) {
                 auto matched_order = GetOrder(event.matched_order_id_);
@@ -92,7 +95,7 @@ namespace akuna::me {
                 LOG_DEBUG("REMOVED order: " << *order);
             }
         }
-        if (FindExistingOrder(order_id) && passivated_order->IsBuy() != order->IsBuy()) {
+        if (FindExistingOrder(order_id)) {
             orders_.at(order_id) = order;
         }
         return true;
