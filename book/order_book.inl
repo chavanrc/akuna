@@ -237,7 +237,7 @@ namespace akuna::book {
     template <class OrderPtr>
     auto OrderBook<OrderPtr>::OnReplace(const OrderPtr &order, Delta delta, Price new_price) -> void {
         order->OnReplaced(delta, new_price);
-        LOG_DEBUG("Event: Replaced: " << *order << ' ' << reason);
+        LOG_DEBUG("Event: Replaced: " << *order);
     }
 
     template <class OrderPtr>
