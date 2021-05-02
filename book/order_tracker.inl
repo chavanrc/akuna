@@ -38,11 +38,6 @@ namespace akuna::book {
     }
 
     template <typename OrderPtr>
-    bool OrderTracker<OrderPtr>::AllOrNone() const {
-        return static_cast<OrderCondition>(conditions_) == OrderCondition::OC_ALL_OR_NONE;
-    }
-
-    template <typename OrderPtr>
     bool OrderTracker<OrderPtr>::ImmediateOrCancel() const {
         return static_cast<OrderCondition>(conditions_) == OrderCondition::OC_IMMEDIATE_OR_CANCEL;
     }

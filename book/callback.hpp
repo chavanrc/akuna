@@ -21,32 +21,20 @@ namespace akuna::book {
         enum class CbType : int16_t {
             CB_UNKNOWN,
             CB_ORDER_ACCEPT,
-            CB_ORDER_REJECT,
             CB_ORDER_FILL,
             CB_ORDER_CANCEL,
-            CB_ORDER_CANCEL_REJECT,
-            CB_ORDER_REPLACE,
-            CB_ORDER_REPLACE_REJECT,
-            CB_BOOK_UPDATE
+            CB_ORDER_REPLACE
         };
 
         static auto Accept(const OrderPtr& order) -> Callback<OrderPtr>;
-
-        static auto Reject(const OrderPtr& order, const char* reason) -> Callback<OrderPtr>;
 
         static auto Fill(const OrderPtr& inbound_order, const OrderPtr& matched_order, const Quantity& fill_qty,
                          const Price& fill_price) -> Callback<OrderPtr>;
 
         static auto Cancel(const OrderPtr& order, const Quantity& open_qty) -> Callback<OrderPtr>;
 
-        static auto CancelReject(const OrderPtr& order, const char* reason) -> Callback<OrderPtr>;
-
         static auto Replace(const OrderPtr& passivated_order, const Quantity& open_qty, const OrderPtr& new_order)
                 -> Callback<OrderPtr>;
-
-        static auto ReplaceReject(const OrderPtr& order, const char* reason) -> Callback<OrderPtr>;
-
-        static auto BookUpdate(const TypedOrderBook* book = nullptr) -> Callback<OrderPtr>;
 
         CbType      type_{CbType::CB_UNKNOWN};
         OrderPtr    order_{nullptr};
@@ -54,7 +42,6 @@ namespace akuna::book {
         Quantity    quantity_{0};
         Price       price_{0};
         Delta       delta_{0};
-        const char* reject_reason_{nullptr};
     };
 }    // namespace akuna::book
 

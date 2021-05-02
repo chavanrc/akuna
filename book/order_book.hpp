@@ -50,23 +50,12 @@ namespace akuna::book {
 
         auto OnAccept(const OrderPtr &order, Quantity quantity) -> void;
 
-        auto OnReject(const OrderPtr &order, const char *reason) -> void;
-
         auto OnFill(const OrderPtr &order, const OrderPtr &matched_order, Quantity fill_qty, Cost fill_cost,
                     FillId fill_id) -> void;
 
         auto OnCancel(const OrderPtr &order, Quantity quantity) -> void;
 
-        auto OnCancelReject(const OrderPtr &order, const char *reason) -> void;
-
         auto OnReplace(const OrderPtr &order, Delta delta, Price new_price) -> void;
-
-        auto OnReplaceReject(const OrderPtr &order, const char *reason) -> void;
-
-        auto OnOrderBookChange() -> void;
-
-        auto OnTrade(const OrderBook *book, const OrderId &id_1, const OrderId &id_2, Quantity qty, Price price,
-                     bool buyer_maker) -> void;
 
         Symbol     symbol_{0};
         TrackerMap bids_{};

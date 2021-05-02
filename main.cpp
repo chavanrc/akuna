@@ -8,7 +8,6 @@ struct Order {
     akuna::book::OrderId  order_id_{0};
     akuna::book::Symbol   symbol_{akuna::book::DEFAULT_SYMBOL};
     bool                  is_buy_{false};
-    bool                  aon_{false};
     bool                  ioc_{false};
     akuna::book::Quantity quantity_{0};
     akuna::book::Price    price_{0};
@@ -17,8 +16,8 @@ struct Order {
         switch (order.msg_type_) {
             case 'A':
                 os << "msg_type : " << order.msg_type_ << " order_id : " << order.order_id_
-                   << " symbol : " << order.symbol_ << " is_buy : " << order.is_buy_ << " aon : " << order.aon_
-                   << " ioc : " << order.ioc_ << " quantity : " << order.quantity_ << " price : " << order.price_;
+                   << " symbol : " << order.symbol_ << " is_buy : " << order.is_buy_ << " ioc : " << order.ioc_
+                   << " quantity : " << order.quantity_ << " price : " << order.price_;
                 break;
             case 'M':
                 os << "msg_type : " << order.msg_type_ << " order_id : " << order.order_id_
@@ -107,10 +106,8 @@ int32_t main(int32_t argc, char* argv[]) {
             switch (order->msg_type_) {
                 case 'A': {
                     akuna::book::OrderConditions conditions =
-                            (order->aon_ ? akuna::book::OrderCondition::OC_ALL_OR_NONE
-                                         : akuna::book::OrderCondition::OC_NO_CONDITIONS) |
-                            (order->ioc_ ? akuna::book::OrderCondition::OC_IMMEDIATE_OR_CANCEL
-                                         : akuna::book::OrderCondition::OC_NO_CONDITIONS);
+                            order->ioc_ ? akuna::book::OrderCondition::OC_IMMEDIATE_OR_CANCEL
+                                        : akuna::book::OrderCondition::OC_NO_CONDITIONS;
                     market->OrderEntry(
                             std::make_shared<akuna::book::Order>(order->order_id_, order->is_buy_, order->symbol_,
                                                                  order->quantity_, order->price_),

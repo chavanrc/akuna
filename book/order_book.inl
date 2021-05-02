@@ -10,7 +10,7 @@ namespace akuna::book {
         bool matched = false;
 
         if (order->GetQuantity() <= 0) {
-            callbacks_.push_back(TypedCallback::Reject(order, "size must be positive"));
+            LOG_DEBUG(*order << " size must be positive");
         } else {
             size_t accept_cb_index = callbacks_.size();
             callbacks_.push_back(TypedCallback::Accept(order));
@@ -20,7 +20,6 @@ namespace akuna::book {
             if (inbound.ImmediateOrCancel() && !inbound.Filled()) {
                 callbacks_.push_back(TypedCallback::Cancel(order, 0));
             }
-            callbacks_.push_back(TypedCallback::BookUpdate(this));
         }
         CallbackNow();
         return matched;
@@ -48,9 +47,8 @@ namespace akuna::book {
         }
         if (found) {
             callbacks_.push_back(TypedCallback::Cancel(order, open_qty));
-            callbacks_.push_back(TypedCallback::BookUpdate(this));
         } else {
-            callbacks_.push_back(TypedCallback::CancelReject(order, "not found"));
+            LOG_DEBUG(*order << " not found");
         }
         CallbackNow();
     }
@@ -64,10 +62,9 @@ namespace akuna::book {
         if (passivated_order->IsBuy() != new_order->IsBuy()) {
             if (FindOnMarket(passivated_order, pos)) {
                 market.erase(pos);
-                callbacks_.push_back(TypedCallback::BookUpdate(this));
                 matched = Add(new_order, book::OrderCondition::OC_NO_CONDITIONS);
             } else {
-                callbacks_.push_back(TypedCallback::ReplaceReject(new_order, "not found"));
+                LOG_DEBUG(*new_order << "not found");
             }
         } else {
             if (FindOnMarket(passivated_order, pos)) {
@@ -76,9 +73,8 @@ namespace akuna::book {
                 market.erase(pos);
                 Tracker inbound(new_order, book::OrderCondition::OC_NO_CONDITIONS);
                 matched = AddOrder(inbound, new_order->GetPrice());
-                callbacks_.push_back(TypedCallback::BookUpdate(this));
             } else {
-                callbacks_.push_back(TypedCallback::ReplaceReject(new_order, "not found"));
+                LOG_DEBUG(*new_order << "not found");
             }
         }
 
@@ -93,12 +89,7 @@ namespace akuna::book {
 
     template <class OrderPtr>
     auto OrderBook<OrderPtr>::MatchOrder(Tracker &inbound, Price inbound_price, TrackerMap &current_orders) -> bool {
-        if (inbound.AllOrNone()) {
-            // TODO
-            return false;
-        } else {
-            return MatchRegularOrder(inbound, inbound_price, current_orders);
-        }
+        return MatchRegularOrder(inbound, inbound_price, current_orders);
     }
 
     template <class OrderPtr>
@@ -200,12 +191,6 @@ namespace akuna::book {
     }
 
     template <class OrderPtr>
-    auto OrderBook<OrderPtr>::OnReject(const OrderPtr &order, const char *reason) -> void {
-        order->OnRejected(reason);
-        LOG_DEBUG("Event: Rejected: " << *order << ' ' << reason);
-    }
-
-    template <class OrderPtr>
     auto OrderBook<OrderPtr>::OnFill(const OrderPtr &order, const OrderPtr &matched_order, Quantity fill_qty,
                                      Cost fill_cost, FillId fill_id) -> void {
         order->OnFilled(fill_qty, fill_cost);
@@ -216,10 +201,8 @@ namespace akuna::book {
             << order->GetOrderId() << ' ' << order->GetPrice() << ' ' << fill_qty;
         LOG_INFO(out.str());
 
-        order->AddTradeHistory(fill_qty, matched_order->QuantityOnMarket(), fill_cost, matched_order->GetOrderId(),
-                               matched_order->GetPrice(), fill_id);
-        matched_order->AddTradeHistory(fill_qty, order->QuantityOnMarket(), fill_cost, order->GetOrderId(),
-                                       order->GetPrice(), fill_id);
+        order->AddTradeHistory(matched_order->GetOrderId());
+        matched_order->AddTradeHistory(order->GetOrderId());
     }
 
     template <class OrderPtr>
@@ -229,32 +212,9 @@ namespace akuna::book {
     }
 
     template <class OrderPtr>
-    auto OrderBook<OrderPtr>::OnCancelReject(const OrderPtr &order, const char *reason) -> void {
-        order->OnCancelRejected(reason);
-        LOG_DEBUG("Event: Cancel Reject: " << *order << ' ' << reason);
-    }
-
-    template <class OrderPtr>
     auto OrderBook<OrderPtr>::OnReplace(const OrderPtr &order, Delta delta, Price new_price) -> void {
         order->OnReplaced(delta, new_price);
         LOG_DEBUG("Event: Replaced: " << *order);
-    }
-
-    template <class OrderPtr>
-    auto OrderBook<OrderPtr>::OnReplaceReject(const OrderPtr &order, const char *reason) -> void {
-        order->OnReplaceRejected(reason);
-        LOG_DEBUG("Event: Replace Reject: " << *order << ' ' << reason);
-    }
-
-    template <class OrderPtr>
-    auto OrderBook<OrderPtr>::OnOrderBookChange() -> void {
-        // TODO
-    }
-
-    template <class OrderPtr>
-    auto OrderBook<OrderPtr>::OnTrade(const OrderBook *book, const OrderId &id_1, const OrderId &id_2, Quantity qty,
-                                      Price price, bool buyer_maker) -> void {
-        // TODO
     }
 
     template <class OrderPtr>
@@ -297,29 +257,16 @@ namespace akuna::book {
                     sell_order_id = cb.matched_order_->GetOrderId();
                 }
                 bool buyer_maker = cb.matched_order_->IsBuy();
-                OnTrade(this, buy_order_id, sell_order_id, cb.quantity_, cb.price_, buyer_maker);
                 break;
             }
             case TypedCallback::CbType::CB_ORDER_ACCEPT:
                 OnAccept(cb.order_, cb.quantity_);
                 break;
-            case TypedCallback::CbType::CB_ORDER_REJECT:
-                OnReject(cb.order_, cb.reject_reason_);
-                break;
             case TypedCallback::CbType::CB_ORDER_CANCEL:
                 OnCancel(cb.order_, cb.quantity_);
                 break;
-            case TypedCallback::CbType::CB_ORDER_CANCEL_REJECT:
-                OnCancelReject(cb.order_, cb.reject_reason_);
-                break;
             case TypedCallback::CbType::CB_ORDER_REPLACE:
                 OnReplace(cb.order_, cb.delta_, cb.price_);
-                break;
-            case TypedCallback::CbType::CB_ORDER_REPLACE_REJECT:
-                OnReplaceReject(cb.order_, cb.reject_reason_);
-                break;
-            case TypedCallback::CbType::CB_BOOK_UPDATE:
-                OnOrderBookChange();
                 break;
             default: {
                 std::stringstream msg;

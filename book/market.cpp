@@ -5,7 +5,6 @@
 namespace akuna::me {
     auto Market::AddBook(Symbol symbol) -> bool {
         LOG_DEBUG("Create new depth order book for " << symbol);
-        // auto [iter, inserted] = books_.insert_or_assign(symbol, std::make_shared<OrderBook>(symbol));
         bool inserted = false;
         if (books_.find(symbol) == books_.end()) {
             inserted = books_.insert({symbol, std::make_shared<OrderBook>(symbol)}).second;
@@ -49,8 +48,8 @@ namespace akuna::me {
 
         if (inserted && book->Add(order, conditions)) {
             LOG_DEBUG(order_id << " matched");
-            for (const auto &event : order->GetTrades()) {
-                auto matched_order = GetOrder(event.matched_order_id_);
+            for (const auto &matched_order_id : order->GetTrades()) {
+                auto matched_order = GetOrder(matched_order_id);
                 if (matched_order && matched_order->QuantityOnMarket() == 0 &&
                     RemoveOrder(matched_order->GetOrderId())) {
                     LOG_DEBUG("REMOVED order: " << *matched_order);
@@ -85,8 +84,8 @@ namespace akuna::me {
         auto book             = GetBook(order->GetSymbol());
         LOG_DEBUG("MODIFYING passivated order: " << *passivated_order << " with order: " << *order);
         if (book->Replace(passivated_order, order)) {
-            for (const auto &event : order->GetTrades()) {
-                auto matched_order = GetOrder(event.matched_order_id_);
+            for (const auto &matched_order_id : order->GetTrades()) {
+                auto matched_order = GetOrder(matched_order_id);
                 if (RemoveOrder(matched_order)) {
                     LOG_DEBUG("REMOVED order: " << *matched_order);
                 }

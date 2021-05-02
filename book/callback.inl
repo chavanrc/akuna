@@ -8,15 +8,6 @@ namespace akuna::book {
     }
 
     template <class OrderPtr>
-    auto Callback<OrderPtr>::Reject(const OrderPtr& order, const char* reason) -> Callback<OrderPtr> {
-        Callback<OrderPtr> result;
-        result.type_          = CbType::CB_ORDER_REJECT;
-        result.order_         = order;
-        result.reject_reason_ = reason;
-        return result;
-    }
-
-    template <class OrderPtr>
     auto Callback<OrderPtr>::Fill(const OrderPtr& inbound_order, const OrderPtr& matched_order,
                                   const Quantity& fill_qty, const Price& fill_price) -> Callback<OrderPtr> {
         Callback<OrderPtr> result;
@@ -38,15 +29,6 @@ namespace akuna::book {
     }
 
     template <class OrderPtr>
-    auto Callback<OrderPtr>::CancelReject(const OrderPtr& order, const char* reason) -> Callback<OrderPtr> {
-        Callback<OrderPtr> result;
-        result.type_          = CbType::CB_ORDER_CANCEL_REJECT;
-        result.order_         = order;
-        result.reject_reason_ = reason;
-        return result;
-    }
-
-    template <class OrderPtr>
     auto Callback<OrderPtr>::Replace(const OrderPtr& passivated_order, const Quantity& open_qty,
                                      const OrderPtr& new_order) -> Callback<OrderPtr> {
         Callback<OrderPtr> result;
@@ -55,22 +37,6 @@ namespace akuna::book {
         result.quantity_ = open_qty;
         result.delta_    = new_order->GetQuantity() - passivated_order->GetQuantity();
         result.price_    = new_order->GetPrice();
-        return result;
-    }
-
-    template <class OrderPtr>
-    auto Callback<OrderPtr>::ReplaceReject(const OrderPtr& order, const char* reason) -> Callback<OrderPtr> {
-        Callback<OrderPtr> result;
-        result.type_          = CbType::CB_ORDER_REPLACE_REJECT;
-        result.order_         = order;
-        result.reject_reason_ = reason;
-        return result;
-    }
-
-    template <class OrderPtr>
-    auto Callback<OrderPtr>::BookUpdate(const OrderBook<OrderPtr>* book) -> Callback<OrderPtr> {
-        Callback<OrderPtr> result;
-        result.type_ = CbType::CB_BOOK_UPDATE;
         return result;
     }
 }    // namespace akuna::book

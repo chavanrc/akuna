@@ -37,70 +37,36 @@ namespace akuna::book {
         return fill_cost_;
     }
 
-    auto Order::GetHistory() const -> const History & {
-        return history_;
-    }
-
     auto Order::GetTrades() const -> const Trades & {
         return trades_;
     }
 
     auto Order::OnAccepted() -> void {
         quantity_on_market_ = quantity_;
-        history_.emplace_back(State::ACCEPTED);
-    }
-
-    auto Order::OnRejected(const char *reason) -> void {
-        history_.emplace_back(State::REJECTED, reason);
     }
 
     auto Order::OnFilled(Quantity fill_qty, Cost fill_cost) -> void {
         quantity_on_market_ -= fill_qty;
         fill_cost_ += fill_cost;
         quantity_filled_ += fill_qty;
-
-        std::stringstream msg;
-        msg << fill_qty << " for " << fill_cost;
-        history_.emplace_back(State::FILLED, msg.str());
     }
 
-    auto Order::AddTradeHistory(Quantity fill_qty, Quantity remaining_qty, Cost fill_cost,
-                                const OrderId &matched_order_id, Price price, FillId fill_id) -> void {
-        MatchedTrade res{};
-        res.matched_order_id_   = matched_order_id;
-        res.fill_cost_          = fill_cost;
-        res.quantity_           = fill_qty;
-        res.price_              = price;
-        res.quantity_on_market_ = remaining_qty;
-        res.fill_id_            = fill_id;
-        trades_.emplace_back(res);
+    auto Order::AddTradeHistory(const OrderId &matched_order_id) -> void {
+        trades_.emplace_back(matched_order_id);
     }
 
     auto Order::OnCancelled() -> void {
         quantity_on_market_ = 0;
-        history_.emplace_back(State::CANCELLED);
-    }
-
-    auto Order::OnCancelRejected(const char *reason) -> void {
-        history_.emplace_back(State::CANCEL_REJECTED, reason);
     }
 
     auto Order::OnReplaced(const Delta &size_delta, Price new_price) -> void {
-        std::stringstream msg;
         if (size_delta != akuna::book::SIZE_UNCHANGED) {
             quantity_ += size_delta;
             quantity_on_market_ += size_delta;
-            msg << "Quantity change: " << size_delta << ' ';
         }
         if (new_price != akuna::book::PRICE_UNCHANGED) {
             price_ = new_price;
-            msg << "New Price " << new_price;
         }
-        history_.emplace_back(State::MODIFIED, msg.str());
-    }
-
-    auto Order::OnReplaceRejected(const char *reason) -> void {
-        history_.emplace_back(State::MODIFY_REJECTED, reason);
     }
 
     auto operator<<(std::ostream &os, const Order &order) -> std::ostream & {
@@ -127,11 +93,6 @@ namespace akuna::book {
         auto cost = order.FillCost();
         if (cost != 0) {
             os << " Cost: " << cost;
-        }
-
-        const auto &history = order.GetHistory();
-        for (const auto &event : history) {
-            os << "\n\t" << event;
         }
 
         os << ']';

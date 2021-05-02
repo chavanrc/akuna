@@ -21,8 +21,6 @@ namespace akuna::book {
 
         auto Ptr() -> OrderPtr&;
 
-        [[nodiscard]] auto AllOrNone() const -> bool;
-
         [[nodiscard]] auto ImmediateOrCancel() const -> bool;
 
     private:
