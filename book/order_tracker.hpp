@@ -11,7 +11,7 @@ namespace akuna::book {
             : order_{order}, open_qty_{order->GetQuantity()}, conditions_{conditions} {
         }
 
-        auto Fill(Quantity qty) -> void{
+        auto Fill(Quantity qty) -> void {
             if (qty > open_qty_) {
                 throw std::runtime_error("Fill size larger than open quantity");
             }

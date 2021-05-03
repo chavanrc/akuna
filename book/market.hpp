@@ -26,7 +26,7 @@ namespace akuna::me {
 
             if (inserted && book_.Add(order, conditions)) {
                 LOG_DEBUG(order_id << " matched");
-                for (const auto &matched_order_id : order->GetTrades()) {
+                for (const auto& matched_order_id : order->GetTrades()) {
                     auto matched_order = GetOrder(matched_order_id);
                     if (RemoveOrder(matched_order)) {
                         LOG_DEBUG("REMOVED order: " << *matched_order);
@@ -48,7 +48,7 @@ namespace akuna::me {
             auto passivated_order = GetOrder(order_id);
             LOG_DEBUG("MODIFYING passivated order: " << *passivated_order << " with order: " << *order);
             if (book_.Replace(passivated_order, order)) {
-                for (const auto &matched_order_id : order->GetTrades()) {
+                for (const auto& matched_order_id : order->GetTrades()) {
                     auto matched_order = GetOrder(matched_order_id);
                     if (RemoveOrder(matched_order)) {
                         LOG_DEBUG("REMOVED order: " << *matched_order);
@@ -58,7 +58,7 @@ namespace akuna::me {
                     LOG_DEBUG("REMOVED order: " << *order);
                 }
             }
-            if (FindExistingOrder(order_id)) {
+            if (FoundExistingOrder(order_id)) {
                 orders_.at(order_id) = order;
             }
             return !result;
@@ -85,29 +85,24 @@ namespace akuna::me {
         }
 
         [[nodiscard]] auto OrderModifyValidate(const OrderPtr& order) -> bool {
-            return Validate(order) && FindExistingOrder(order->GetOrderId());
+            return Validate(order) && FoundExistingOrder(order->GetOrderId());
         }
 
         [[nodiscard]] auto GetOrder(const OrderId& order_id) -> OrderPtr {
-            if (FindExistingOrder(order_id)) {
+            if (FoundExistingOrder(order_id)) {
                 return orders_.at(order_id);
             }
             return {};
         }
 
-        [[nodiscard]] auto FindExistingOrder(const OrderId& order_id) -> bool {
-            bool result = true;
-            if (orders_.find(order_id) == orders_.end()) {
-                LOG_DEBUG("--Can't find OrderID #" << order_id);
-                result = false;
-            }
-            return result;
+        [[nodiscard]] auto FoundExistingOrder(const OrderId& order_id) -> bool {
+            return orders_.find(order_id) != orders_.end();
         }
 
         [[nodiscard]] auto AddOrder(const OrderPtr& order) -> bool {
-            const auto &order_id = order->GetOrderId();
+            const auto& order_id = order->GetOrderId();
             bool        inserted = false;
-            if (orders_.find(order_id) == orders_.end()) {
+            if (!FoundExistingOrder(order_id)) {
                 inserted = orders_.insert({order_id, order}).second;
             }
             return inserted;

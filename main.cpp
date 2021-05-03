@@ -3,6 +3,15 @@
 
 #include "book/market.hpp"
 
+namespace {
+    const std::string BUY{"BUY"};
+    const std::string SELL{"SELL"};
+    const std::string MODIFY{"MODIFY"};
+    const std::string CANCEL{"CANCEL"};
+    const std::string PRINT{"PRINT"};
+    const std::string IOC{"IOC"};
+}
+
 struct Order {
     bool                  valid_{true};
     char                  msg_type_{'\0'};
@@ -42,15 +51,15 @@ static Order ReadLine(const std::string& line) {
 
     std::getline(iss, s, ' ');
     Order order;
-    if (s == "BUY" || s == "SELL") {
+    if (s == BUY || s == SELL) {
         order.msg_type_ = 'A';
 
-        if (s == "BUY") {
+        if (s == BUY) {
             order.is_buy_ = true;
         }
 
         std::getline(iss, s, ' ');
-        if (s == "IOC") {
+        if (s == IOC) {
             order.ioc_ = true;
         }
 
@@ -63,13 +72,13 @@ static Order ReadLine(const std::string& line) {
         std::getline(iss, s, ' ');
         order.order_id_ = std::move(s);
         Trim(order.order_id_);
-    } else if (s == "MODIFY") {
+    } else if (s == MODIFY) {
         order.msg_type_ = 'M';
         std::getline(iss, s, ' ');
         order.order_id_ = std::move(s);
 
         std::getline(iss, s, ' ');
-        if (s == "BUY") {
+        if (s == BUY) {
             order.is_buy_ = true;
         }
         std::getline(iss, s, ' ');
@@ -77,13 +86,13 @@ static Order ReadLine(const std::string& line) {
 
         std::getline(iss, s, ' ');
         order.quantity_ = std::stoull(s);
-    } else if (s == "CANCEL") {
+    } else if (s == CANCEL) {
         order.msg_type_ = 'X';
         std::getline(iss, s, ' ');
 
         order.order_id_ = std::move(s);
         Trim(order.order_id_);
-    } else if (s == "PRINT") {
+    } else if (s == PRINT) {
         order.msg_type_ = 'P';
     } else {
         order.valid_ = false;

@@ -18,13 +18,7 @@ namespace akuna::book {
     public:
         using TypedOrderBook = OrderBook<OrderPtr>;
 
-        enum class CbType : int16_t {
-            CB_UNKNOWN,
-            CB_ORDER_ACCEPT,
-            CB_ORDER_FILL,
-            CB_ORDER_CANCEL,
-            CB_ORDER_REPLACE
-        };
+        enum class CbType : int16_t { CB_UNKNOWN, CB_ORDER_ACCEPT, CB_ORDER_FILL, CB_ORDER_CANCEL, CB_ORDER_REPLACE };
 
         static auto Accept(const OrderPtr& order) -> Callback<OrderPtr> {
             Callback<OrderPtr> result;
@@ -63,11 +57,11 @@ namespace akuna::book {
             return result;
         }
 
-        CbType      type_{CbType::CB_UNKNOWN};
-        OrderPtr    order_{nullptr};
-        OrderPtr    matched_order_{nullptr};
-        Quantity    quantity_{0};
-        Price       price_{0};
-        Delta       delta_{0};
+        CbType   type_{CbType::CB_UNKNOWN};
+        OrderPtr order_{nullptr};
+        OrderPtr matched_order_{nullptr};
+        Quantity quantity_{0};
+        Price    price_{0};
+        Delta    delta_{0};
     };
 }    // namespace akuna::book

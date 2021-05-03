@@ -124,25 +124,13 @@ namespace akuna::book {
 
         auto CreateTrade(Tracker &inbound_tracker, Tracker &current_tracker, Quantity max_quantity = UINT64_MAX)
                 -> Quantity {
-            Price cross_price = current_tracker.Ptr()->GetPrice();
-            // If current order is a market order, cross at inbound price
-            if (MARKET_ORDER_PRICE == cross_price) {
-                cross_price = inbound_tracker.Ptr()->GetPrice();
-            }
-            if (MARKET_ORDER_PRICE == cross_price) {
-                cross_price = market_price_;
-            }
-            if (MARKET_ORDER_PRICE == cross_price) {
-                // No price available for this order
-                return 0;
-            }
             Quantity fill_qty = std::min(max_quantity, std::min(inbound_tracker.OpenQty(), current_tracker.OpenQty()));
             if (fill_qty > 0) {
                 inbound_tracker.Fill(fill_qty);
                 current_tracker.Fill(fill_qty);
-                MarketPrice(cross_price);
+                MarketPrice(market_price_);
                 callbacks_.push_back(
-                        TypedCallback::Fill(inbound_tracker.Ptr(), current_tracker.Ptr(), fill_qty, cross_price));
+                        TypedCallback::Fill(inbound_tracker.Ptr(), current_tracker.Ptr(), fill_qty, market_price_));
             }
             return fill_qty;
         }
